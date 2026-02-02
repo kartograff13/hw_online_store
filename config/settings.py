@@ -125,9 +125,3 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-import os
-print("DEBUG:", DEBUG)
-print("STATICFILES_DIRS:", STATICFILES_DIRS)
-print("BASE_DIR:", BASE_DIR)
-print("Статика существует:", os.path.exists(BASE_DIR / "static" / "css" / "bootstrap.min.css"))
