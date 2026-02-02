@@ -35,3 +35,21 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.price} руб.)"
+
+
+class Contact(models.Model):
+    """Модель для хранения контактных данных"""
+    first_name = models.CharField(max_length=100, verbose_name="Имя")
+    last_name = models.CharField(max_length=100, verbose_name="Фамилия")
+    phone = models.CharField(max_length=20, verbose_name="Телефон", blank=True, null=True)
+    email = models.EmailField(verbose_name="Электронная почта", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    update_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        verbose_name = "Контакт"
+        verbose_name_plural = "Контакты"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"Контакт: {self.first_name} {self.last_name} ({self.phone}, {self.email})."

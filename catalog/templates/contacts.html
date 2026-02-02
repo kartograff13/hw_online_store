@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Skystore</title>
+    <title>Skystore - Контакты</title>
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
 </head>
 <body>
@@ -36,21 +36,59 @@
     <div class="row text-start">
         <div class="col-lg-9 col-md-6 col-sm-12">
             <div class="card mb-4 box-shadow">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">Наши контактные данные</h4>
+                </div>
                 <div class="card-body">
+                    {% if contact %}
                     <table class="table table-striped">
                         <tr>
-                            <td class="w-25">Страна</td>
-                            <td>USA</td>
+                            <td class="w-25">Имя</td>
+                            <td>{{ contact.first_name }}</td>
                         </tr>
                         <tr>
-                            <td class="w-25">ИНН</td>
-                            <td>91-1144442</td>
+                            <td class="w-25">Фамилия</td>
+                            <td>{{ contact.last_name }}</td>
+                        </tr>
+                        {% if contact.phone %}
+                        <tr>
+                            <td class="w-25">Телефон</td>
+                            <td>{{ contact.phone }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if contact.email %}
+                        <tr>
+                            <td class="w-25">Email</td>
+                            <td>{{ contact.email }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td class="w-25">Добавлен</td>
+                            <td>{{ contact.created_at|date:"d.m.Y H:i" }}</td>
                         </tr>
                         <tr>
-                            <td class="w-25">Адрес</td>
-                            <td>Redmond,WA,98052-6399</td>
+                            <td class="w-25">Обновлен</td>
+                            <td>{{ contact.update_at|date:"d.m.Y H:i" }}</td>
                         </tr>
                     </table>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">Контактные данные не заполнены</h5>
+                        <p>Для отображения информации выполните:</p>
+                        <ol>
+                            <li>Войдите в <a href="/admin/">админку</a></li>
+                            <li>Перейдите в раздел "Контакты"</li>
+                            <li>Добавьте контактные данные</li>
+                        </ol>
+                        <hr>
+                        <p class="mb-0">Или создайте контакт через Django shell:</p>
+                        <code>
+                            python manage.py shell<br>
+                            from catalog.models import Contact<br>
+                            Contact.objects.create(first_name="Иван", last_name="Иванов", phone="+7 (999) 123-45-67", email="contact@example.com")
+                        </code>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -68,15 +106,29 @@
                         </div>
                         <div class="mb-3">
                             <label for="phone">Телефон</label>
-                            <input type="text" name="phone" class="form-control" id="phone" placeholder="Контактный телефон" required>
+                            <input type="text" name="phone" class="form-control" id="phone" placeholder="+7XXXXXXXXXX" required>
+                            <small class="form-text text-muted">Формат: +7XXXXXXXXXX, 8XXXXXXXXXX или 7XXXXXXXXXX</small>
                         </div>
                         <div class="mb-3">
                             <label for="message">Сообщение</label>
-                            <textarea type="text" name="message" class="form-control" id="message" placeholder="Контактный телефон" required></textarea>
+                            <textarea name="message" class="form-control" id="message" placeholder="Ваше сообщение" rows="4" required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-lg btn-block btn-outline-primary">Отправить</button>
+                        <button type="submit" class="btn btn-lg btn-block btn-outline-primary w-100">Отправить</button>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация для разработчика -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <h5 class="alert-heading">💡 Информация для разработчика</h5>
+                <p class="mb-0">
+                    Контактные данные загружаются из базы данных через модель Contact.<br>
+                    Сообщения из формы обратной связи выводятся в консоль сервера.
+                </p>
             </div>
         </div>
     </div>

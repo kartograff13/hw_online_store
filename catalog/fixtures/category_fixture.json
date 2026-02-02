@@ -14,44 +14,5 @@
         "name": "Одежда",
         "description": "Мужская и женская одежда"
     }
-},
-{
-    "model": "catalog.product",
-    "pk": 1,
-    "fields": {
-        "name": "Ноутбук HP Pavilion",
-        "description": "17-дюймовый ноутбук с процессором Intel i7",
-        "image": "",
-        "category": 1,
-        "price": "59999.99",
-        "created_at": "2026-02-02T06:56:12.439Z",
-        "updated_at": "2026-02-02T07:19:03.981Z"
-    }
-},
-{
-    "model": "catalog.product",
-    "pk": 2,
-    "fields": {
-        "name": "Смартфон Samsung Galaxy S24 Ultra",
-        "description": "Смартфон с камерой 108 МП",
-        "image": "",
-        "category": 1,
-        "price": "69999.89",
-        "created_at": "2026-02-02T06:56:35.541Z",
-        "updated_at": "2026-02-02T06:56:35.541Z"
-    }
-},
-{
-    "model": "catalog.product",
-    "pk": 3,
-    "fields": {
-        "name": "Джинсы LeeCooper",
-        "description": "Классические синие джинсы",
-        "image": "",
-        "category": 2,
-        "price": "4999.00",
-        "created_at": "2026-02-02T06:58:32.929Z",
-        "updated_at": "2026-02-02T06:58:32.929Z"
-    }
 }
 ]
