@@ -1,94 +1,75 @@
-<!doctype html>
+{% extends 'base.html' %}
 {% load static %}
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Каталог - Skystore</title>
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
-</head>
-<body>
-<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
-    <h5 class="my-0 mr-md-auto font-weight-normal">Skystore</h5>
-    <nav class="ms-5">
-        <a class="p-2 btn btn-outline-primary" href="{% url 'catalog:home' %}">Главная</a>
-        <a class="p-2 btn btn-outline-primary" href="{% url 'catalog:contacts' %}">Контакты</a>
-    </nav>
-</div>
 
+{% block title %}Каталог товаров - Skystore{% endblock %}
+
+{% block header %}
 <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
     <h1 class="display-4">Каталог товаров</h1>
-    <p class="lead">Подробная информация о товарах внутри</p>
+</div>
+{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mt-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:home' %}">Главная</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Каталог</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Каталог товаров -->
+{% if all_products %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h3 class="page-title">🛍️ Доступные товары:</h3>
+        <p class="text-muted">Всего товаров: {{ all_products|length }}</p>
+    </div>
 </div>
 
-<div class="container">
-    <!-- Каталог товаров -->
-    {% if all_products %}
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h3>🛍️ Доступные товары:</h3>
-            <p class="text-muted">Всего товаров: {{ all_products|length }}</p>
-        </div>
-    </div>
-
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-        {% for product in all_products %}
-        <div class="col">
-            <div class="card shadow-sm h-100">
-                <!-- Изображение товара -->
-                {% if product.image %}
-                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"
-                     style="height: 225px; object-fit: cover;">
-                {% else %}
-                <svg class="bd-placeholder-img card-img-top" width="100%" height="225"
-                     xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Нет изображения"
-                     preserveAspectRatio="xMidYMid slice" focusable="false">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+    {% for product in all_products %}
+    <div class="col">
+        <div class="card shadow-sm h-100">
+            <!-- Изображение товара -->
+            {% if product.image %}
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 225px; object-fit: cover;">
+            {% else %}
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Нет изображения" preserveAspectRatio="xMidYMid slice" focusable="false">
                     <title>Нет изображения</title>
                     <rect width="100%" height="100%" fill="#55595c"/>
                     <text x="50%" y="50%" fill="#eceeef" dy=".3em">Нет изображения</text>
                 </svg>
-                {% endif %}
-
-                <div class="card-body">
-                    <h5 class="card-title">{{ product.name|truncatechars:25 }}</h5>
-                    <p class="card-text">
-                        <strong>Цена:</strong> {{ product.price }} руб.<br>
-                        <strong>Категория:</strong> {{ product.category.name|default:"Не указана" }}<br>
-                        <span class="text-muted">{{ product.description|truncatechars:100 }}</span>
-                    </p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="btn-group">
-                            <a href="{% url 'catalog:product_detail' pk=product.id %}"
-                               class="btn btn-sm btn-outline-secondary">Подробнее</a>
-                        </div>
-                        <small class="text-muted">{{ product.created_at|date:"d.m.Y" }}</small>
+            {% endif %}
+            
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name|truncatechars:25 }}</h5>
+                <p class="card-text">
+                    <strong>Цена:</strong> {{ product.price }} руб.<br>
+                    <strong>Категория:</strong> {{ product.category.name|default:"Не указана" }}<br>
+                    <span class="text-muted">{{ product.description|truncatechars:100 }}</span>
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                        <a href="{% url 'catalog:product_detail' pk=product.id %}" class="btn btn-sm btn-outline-secondary">Подробнее</a>
                     </div>
+                    <small class="text-muted">{{ product.created_at|date:"d.m.Y" }}</small>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-    {% else %}
-    <div class="row">
-        <div class="col-md-12">
-            <div class="alert alert-info">
-                <h4 class="alert-heading">Товаров пока нет!</h4>
-                <p>Заполните базу данных командой:</p>
-                <code>python manage.py load_initial_data</code>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Футер -->
-    <footer class="pt-4 my-md-5 pt-md-5 border-top">
-        <div class="row">
-            <div class="col-12 col-md text-center">
-                <small class="d-block mb-3 text-muted">&copy; Skystore {% now "Y" %}</small>
-            </div>
-        </div>
-    </footer>
+    {% endfor %}
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h4 class="alert-heading">Товаров пока нет!</h4>
+            <p>Заполните базу данных командой:</p>
+            <code>python manage.py load_initial_data</code>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
