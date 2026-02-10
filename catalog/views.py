@@ -1,6 +1,8 @@
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, render
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.shortcuts import get_object_or_404, redirect, render
 
+from .forms import ProductForm
 from .models import Category, Contact, Product
 
 
@@ -88,10 +90,44 @@ def product_detail(request, pk):
 
 
 def catalog(request):
-    """Контроллер каталога товаров с выводом всех продуктов"""
-    all_products = Product.objects.all()
+    """Контроллер каталога товаров с пагинацией"""
+    all_products = Product.objects.all().order_by("-created_at")
+
+    paginator = Paginator(all_products, 6)
+    page = request.GET.get("page")
+
+    try:
+        products = paginator.page(page)
+    except PageNotAnInteger:
+        products = paginator.page(1)
+    except EmptyPage:
+        products = paginator.page(paginator.num_pages)
 
     context = {
-        "all_products": all_products,
+        "all_products": products,
+        "paginator": paginator,
+        "page_obj": products,
     }
     return render(request, "catalog.html", context)
+
+
+def add_product(request):
+    """Контроллер для добавления товара"""
+    categories = Category.objects.all()
+
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()
+            messages.success(request, f"'{product.name}' успешно добавлен.")
+            return redirect("catalog:product_detail", pk=product.id)
+        return None
+    else:
+        form = ProductForm()
+
+    context = {
+        "form": form,
+        "categories": categories,
+        "title": "Добавить новый товар",
+    }
+    return render(request, "add_product.html", context)
