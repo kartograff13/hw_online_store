@@ -4,51 +4,34 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Skystore</title>
+    <title>Каталог - Skystore</title>
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet"/>
 </head>
 <body>
 <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
     <h5 class="my-0 mr-md-auto font-weight-normal">Skystore</h5>
     <nav class="ms-5">
-        <a class="p-2 btn btn-outline-primary" href="{% url 'catalog:catalog' %}">Каталог</a>
+        <a class="p-2 btn btn-outline-primary" href="{% url 'catalog:home' %}">Главная</a>
         <a class="p-2 btn btn-outline-primary" href="{% url 'catalog:contacts' %}">Контакты</a>
     </nav>
 </div>
 
 <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-    <h1 class="display-4">Skystore</h1>
-    <p class="lead">Skystore - это отличный вариант хранения ваших плагинов и примеров кода, который вы бы хотели
-        продать</p>
+    <h1 class="display-4">Каталог товаров</h1>
 </div>
 
 <div class="container">
-    <!-- Статистика магазина -->
+    <!-- Каталог товаров -->
+    {% if all_products %}
     <div class="row mb-4">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">📊 Статистика магазина</h5>
-                    <p class="card-text">
-                        • Всего категорий: <strong>{{ total_categories }}</strong><br>
-                        • Всего товаров: <strong>{{ total_products }}</strong><br>
-                        • Последние добавленные товары: <strong>{{ latest_products|length }}</strong>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Последние добавленные товары -->
-    {% if latest_products %}
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h3>🆕 Последние добавленные товары:</h3>
+            <h3>🛍️ Доступные товары:</h3>
+            <p class="text-muted">Всего товаров: {{ all_products|length }}</p>
         </div>
     </div>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-        {% for product in latest_products %}
+        {% for product in all_products %}
         <div class="col">
             <div class="card shadow-sm h-100">
                 <!-- Изображение товара -->
@@ -95,19 +78,6 @@
         </div>
     </div>
     {% endif %}
-
-    <!-- Информация для разработчика -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="alert alert-warning">
-                <h5 class="alert-heading">💡 Информация для разработчика</h5>
-                <p class="mb-0">
-                    Последние 5 товаров выводятся в консоль сервера при каждой загрузке главной страницы.
-                    Проверьте терминал!
-                </p>
-            </div>
-        </div>
-    </div>
 
     <!-- Футер -->
     <footer class="pt-4 my-md-5 pt-md-5 border-top">
