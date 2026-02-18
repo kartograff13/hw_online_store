@@ -44,3 +44,4 @@ class BlogDeleteView(DeleteView):
     model = BlogPost
     template_name = "blog/blog_confirm_delete.html"
     success_url = reverse_lazy("blog:blog_list")
+    context_object_name = "post"
