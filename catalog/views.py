@@ -1,63 +1,64 @@
 from django.contrib import messages
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.views import View
+from django.views.generic import CreateView, DetailView, ListView, TemplateView
 
 from .forms import ProductForm
 from .models import Category, Contact, Product
 
 
-def home(request):
-    """Контроллер главной страницы с выводом последних 5 продуктов в консоль"""
-    latest_products = Product.objects.order_by("-created_at")[:5]
+class HomeView(TemplateView):
+    """Класс контроллера главной страницы с последними 5 добавленными товарами"""
 
-    print("ПОСЛЕДНИЕ 5 СОЗДАННЫХ ПРОДУКТОВ:")
-    for i, product in enumerate(latest_products, 1):
-        category_name = product.category.name if product.category else "Без категории"
-        print(f"{i}. {product.name} - {product.price} руб. (Категория: {category_name})")
+    template_name = "home.html"
 
-    context = {
-        "latest_products": latest_products,
-        "total_products": Product.objects.count(),
-        "total_categories": Category.objects.count(),
-    }
-    return render(request, "home.html", context)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        latest_products = Product.objects.order_by("-created_at")[:5]
+        context["latest_products"] = latest_products
+        context["total_products"] = Product.objects.count()
+        context["total_categories"] = Category.objects.count()
+
+        print("ПОСЛЕДНИЕ 5 СОЗДАННЫХ ПРОДУКТОВ:")
+        for i, product in enumerate(latest_products, 1):
+            category_name = product.category.name if product.category else "Без категории"
+            print(f"{i}. {product.name} - {product.price} руб. (Категория: {category_name})")
+
+        return context
 
 
-def contacts(request):
-    """Контроллер страницы контактов"""
-    contact_info = Contact.objects.first()
+class ContactView(View):
+    """Класс контроллера страницы контактов с формой обратной связи"""
 
-    if request.method == "POST":
+    template_name = "contacts.html"
+
+    def get(self, request):
+        contact_info = Contact.objects.first()
+        return render(request, self.template_name, {"contact_info": contact_info})
+
+    def post(self, request):
+        contact_info = Contact.objects.first()
         name = request.POST.get("name", "").strip()
         phone = request.POST.get("phone", "").strip()
         message = request.POST.get("message", "").strip()
 
         if not name or not phone or not message:
-            messages.error(request, "Все поля обязательны для заполнения")
+            messages.error(request, "Необходимо заполнить все поля")
         else:
-            clean_phone = phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+            clean_phone = phone.replace(" ", "").replace("-", "").replace(".", "")
+            phone_valid = False
 
             if clean_phone.startswith("+"):
                 if len(clean_phone) == 12 and clean_phone.startswith("+7") and clean_phone[2:].isdigit():
                     phone_valid = True
-                else:
-                    phone_valid = False
-            elif clean_phone.startswith("8"):
+            elif clean_phone.startswith("8") or clean_phone.startswith("7"):
                 if len(clean_phone) == 11 and clean_phone[1:].isdigit():
                     phone_valid = True
-                else:
-                    phone_valid = False
-            elif clean_phone.startswith("7"):
-                if len(clean_phone) == 11 and clean_phone[1:].isdigit():
-                    phone_valid = True
-                else:
-                    phone_valid = False
-            else:
-                phone_valid = False
 
             if not phone_valid:
                 messages.error(
-                    request, "Неверный формат телефона. Используйте: +7XXXXXXXXXX, 8XXXXXXXXXX или 7XXXXXXXXXX"
+                    request, "Неверный формат телефона, Используйте: +7XXXXXXXXXX, 8XXXXXXXXXX или 7XXXXXXXXXX"
                 )
             else:
                 if clean_phone.startswith("+"):
@@ -67,67 +68,49 @@ def contacts(request):
                 else:
                     formatted_phone = "+" + clean_phone
 
-                print("НОВОЕ СООБЩЕНИЕ ОБРАТНОЙ СВЯЗИ:")
-                print(f"Имя: {name}")
-                print(f"Телефон: {formatted_phone}")
-                print(f"Сообщение: {message}")
+            print("НОВОЕ СООБЩЕНИЕ ОБРАТНОЙ СВЯЗИ:")
+            print(f"Имя: {name}")
+            print(f"Телефон: {formatted_phone}")
+            print(f"Сообщение: {message}")
 
-                messages.success(request, "Сообщение успешно отправлено! Мы свяжемся с вами в ближайшее время.")
-
-    context = {
-        "contact": contact_info,
-    }
-    return render(request, "contacts.html", context)
+            messages.success(request, "Сообщение успешно отправлено! Мы свяжемся с Вами в ближайшее время.")
+            return render(request, self.template_name, {"contact_info": contact_info})
 
 
-def product_detail(request, pk):
-    """Контроллер страницы с подробной информацией о товаре"""
-    product = get_object_or_404(Product, id=pk)
-    context = {
-        "product": product,
-    }
-    return render(request, "product_detail.html", context)
+class ProductDetailView(DetailView):
+    """Класс контроллера страницы с подробной информацией о товаре"""
+
+    model = Product
+    template_name = "product_detail.html"
+    context_object_name = "product"
 
 
-def catalog(request):
-    """Контроллер каталога товаров с пагинацией"""
-    all_products = Product.objects.all().order_by("-created_at")
+class CatalogListView(ListView):
+    """Класс контроллера страницы каталога товаров с пагинацией"""
 
-    paginator = Paginator(all_products, 6)
-    page = request.GET.get("page")
-
-    try:
-        products = paginator.page(page)
-    except PageNotAnInteger:
-        products = paginator.page(1)
-    except EmptyPage:
-        products = paginator.page(paginator.num_pages)
-
-    context = {
-        "all_products": products,
-        "paginator": paginator,
-        "page_obj": products,
-    }
-    return render(request, "catalog.html", context)
+    model = Product
+    template_name = "catalog.html"
+    context_object_name = "all_products"
+    paginate_by = 6
+    ordering = ["-created_at"]
 
 
-def add_product(request):
-    """Контроллер для добавления товара"""
-    categories = Category.objects.all()
+class ProductCreateVeiw(CreateView):
+    """Класс контроллера для добавления нового товара"""
 
-    if request.method == "POST":
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            product = form.save()
-            messages.success(request, f"'{product.name}' успешно добавлен.")
-            return redirect("catalog:product_detail", pk=product.id)
-        return None
-    else:
-        form = ProductForm()
+    model = Product
+    form_class = ProductForm
+    template_name = "add_product.html"
 
-    context = {
-        "form": form,
-        "categories": categories,
-        "title": "Добавить новый товар",
-    }
-    return render(request, "add_product.html", context)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Добавить новый товар"
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"'{self.object.name}' успешно добавлен.")
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy("catalog:product_detail", kwargs={"pk": self.object.pk})
