@@ -29,13 +29,12 @@ class HomeView(TemplateView):
 
 
 class ContactView(View):
-    """Класс контроллера страницы контактов с формой обратной связи"""
-
+    """Страница контактов с формой обратной связи"""
     template_name = "contacts.html"
 
     def get(self, request):
         contact_info = Contact.objects.first()
-        return render(request, self.template_name, {"contact_info": contact_info})
+        return render(request, self.template_name, {"contact": contact_info})
 
     def post(self, request):
         contact_info = Contact.objects.first()
@@ -44,37 +43,38 @@ class ContactView(View):
         message = request.POST.get("message", "").strip()
 
         if not name or not phone or not message:
-            messages.error(request, "Необходимо заполнить все поля")
+            messages.error(request, "Все поля обязательны для заполнения")
         else:
-            clean_phone = phone.replace(" ", "").replace("-", "").replace(".", "")
+            clean_phone = phone.replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
             phone_valid = False
+            formatted_phone = None
 
             if clean_phone.startswith("+"):
                 if len(clean_phone) == 12 and clean_phone.startswith("+7") and clean_phone[2:].isdigit():
                     phone_valid = True
+                    formatted_phone = clean_phone
             elif clean_phone.startswith("8") or clean_phone.startswith("7"):
                 if len(clean_phone) == 11 and clean_phone[1:].isdigit():
                     phone_valid = True
+                    if clean_phone.startswith("8"):
+                        formatted_phone = "+7" + clean_phone[1:]
+                    else:
+                        formatted_phone = "+" + clean_phone
 
             if not phone_valid:
                 messages.error(
-                    request, "Неверный формат телефона, Используйте: +7XXXXXXXXXX, 8XXXXXXXXXX или 7XXXXXXXXXX"
+                    request,
+                    "Неверный формат телефона. Используйте: +7XXXXXXXXXX, 8XXXXXXXXXX или 7XXXXXXXXXX"
                 )
             else:
-                if clean_phone.startswith("+"):
-                    formatted_phone = clean_phone
-                elif clean_phone.startswith("8"):
-                    formatted_phone = "+7" + clean_phone[1:]
-                else:
-                    formatted_phone = "+" + clean_phone
+                print("НОВОЕ СООБЩЕНИЕ ОБРАТНОЙ СВЯЗИ:")
+                print(f"Имя: {name}")
+                print(f"Телефон: {formatted_phone}")
+                print(f"Сообщение: {message}")
 
-            print("НОВОЕ СООБЩЕНИЕ ОБРАТНОЙ СВЯЗИ:")
-            print(f"Имя: {name}")
-            print(f"Телефон: {formatted_phone}")
-            print(f"Сообщение: {message}")
+                messages.success(request, "Сообщение успешно отправлено! Мы свяжемся с вами в ближайшее время.")
 
-            messages.success(request, "Сообщение успешно отправлено! Мы свяжемся с Вами в ближайшее время.")
-            return render(request, self.template_name, {"contact_info": contact_info})
+        return render(request, self.template_name, {"contact": contact_info})
 
 
 class ProductDetailView(DetailView):
