@@ -20,14 +20,23 @@ class ContactAdmin(admin.ModelAdmin):
     list_display = ("id", "first_name", "last_name", "phone", "email", "created_at")
     search_fields = ("first_name", "last_name", "phone", "email")
     fieldsets = (
-        ("Личная информация", {
-            "fields": ("first_name", "last_name"),
-        }),
-        ("Контактные данные", {
-            "fields": ("phone", "email"),
-        }),
-        ("Системные данные", {
-            "fields": ("created_at", "update_at"),
-        })
+        (
+            "Личная информация",
+            {
+                "fields": ("first_name", "last_name"),
+            },
+        ),
+        (
+            "Контактные данные",
+            {
+                "fields": ("phone", "email"),
+            },
+        ),
+        (
+            "Системные данные",
+            {
+                "fields": ("created_at", "update_at"),
+            },
+        ),
     )
     readonly_fields = ("created_at", "update_at")

@@ -30,6 +30,7 @@ class HomeView(TemplateView):
 
 class ContactView(View):
     """Страница контактов с формой обратной связи"""
+
     template_name = "contacts.html"
 
     def get(self, request):
@@ -63,8 +64,7 @@ class ContactView(View):
 
             if not phone_valid:
                 messages.error(
-                    request,
-                    "Неверный формат телефона. Используйте: +7XXXXXXXXXX, 8XXXXXXXXXX или 7XXXXXXXXXX"
+                    request, "Неверный формат телефона. Используйте: +7XXXXXXXXXX, 8XXXXXXXXXX или 7XXXXXXXXXX"
                 )
             else:
                 print("НОВОЕ СООБЩЕНИЕ ОБРАТНОЙ СВЯЗИ:")

@@ -1,4 +1,6 @@
-from django.urls import reverse_lazy
+from django.conf import settings
+from django.core.mail import send_mail
+from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from blog.models import BlogPost
@@ -19,9 +21,28 @@ class BlogDetailView(DetailView):
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
+        old_views = obj.views_count
         obj.views_count += 1
         obj.save(update_fields=["views_count"])
+
+        if old_views < 100 <= obj.views_count:
+            self.send_email(obj)
+
         return obj
+
+    def send_email(self, post):
+        subject = "Congratulations! Your blog has been viewed over 100 times!"
+        post_url = self.request.build_absolute_uri(reverse("blog:blog_detail", args=[post.pk]))
+
+        message = f"Статья '{post.title}' (ID: {post.pk}) набрала 100+ просмотров!\n" f"Ссылка на статью: {post_url}\n"
+
+        from_email = settings.DEFAULT_FROM_EMAIL
+        recipient_list = ["kartograff13@gmail.com"]
+
+        try:
+            send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+        except Exception as e:
+            print(f"Ошибка отправки email: {e}")
 
 
 class BlogCreateView(CreateView):

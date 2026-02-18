@@ -39,6 +39,7 @@ class Product(models.Model):
 
 class Contact(models.Model):
     """Модель для хранения контактных данных"""
+
     first_name = models.CharField(max_length=100, verbose_name="Имя")
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     phone = models.CharField(max_length=20, verbose_name="Телефон", blank=True, null=True)

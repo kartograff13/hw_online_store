@@ -1,5 +1,5 @@
-from django.core.management.base import BaseCommand
 from django.core.management import call_command
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
@@ -40,4 +40,5 @@ class Command(BaseCommand):
         except Exception as e:
             self.stderr.write(f"Ошибка при загрузке данных: {e}")
             import traceback
+
             traceback.print_exc()
