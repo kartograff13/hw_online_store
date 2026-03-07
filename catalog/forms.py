@@ -46,6 +46,7 @@ class ProductForm(forms.ModelForm):
                 field.widget.attrs["class"] = "form-control"
 
     def clean_name(self):
+        """Валидация имени"""
         name = self.cleaned_data.get("name")
         if name:
             self._validate_forbidden_words(name)
@@ -54,16 +55,30 @@ class ProductForm(forms.ModelForm):
         return name
 
     def clean_description(self):
+        """Валидация описания"""
         description = self.cleaned_data.get("description")
         if description:
             self._validate_forbidden_words(description)
         return description
 
     def clean_price(self):
+        """Валидация положительной цены"""
         price = self.cleaned_data.get("price")
         if price and price <= 0:
             raise ValidationError("Цена должна быть больше 0")
         return price
+
+    def clean_image(self):
+        """Валидация загружаемого изображения"""
+        image = self.cleaned_data.get("image")
+        if image:
+            if image.size > 5 * 1024 * 1024:
+                raise ValidationError("Размер изображения не должен превышать 5 МБ")
+
+            allowed_content_types = ["image/jpeg", "image/png"]
+            if image.content_type not in allowed_content_types:
+                raise ValidationError("Допустимые форматы изображения: JPEG и PNG")
+        return image
 
     @staticmethod
     def _validate_forbidden_words(text):
