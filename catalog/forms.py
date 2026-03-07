@@ -23,15 +23,11 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = ["name", "description", "image", "category", "price"]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Введите название товара"}),
-            "description": forms.Textarea(
-                attrs={"class": "form-control", "placeholder": "Введите описание товара", "rows": 4}
-            ),
-            "image": forms.FileInput(attrs={"class": "form-control"}),
-            "category": forms.Select(attrs={"class": "form-select"}),
-            "price": forms.NumberInput(
-                attrs={"class": "form-control", "placeholder": "Введите цену", "min": "0", "step": "0.01"}
-            ),
+            "name": forms.TextInput(attrs={"placeholder": "Введите название товара"}),
+            "description": forms.Textarea(attrs={"placeholder": "Введите описание товара", "rows": 4}),
+            "image": forms.FileInput(attrs={}),
+            "category": forms.Select(attrs={}),
+            "price": forms.NumberInput(attrs={"placeholder": "Введите цену", "min": "0", "step": "0.01"}),
         }
         labels = {
             "name": "Название товара",
@@ -41,13 +37,21 @@ class ProductForm(forms.ModelForm):
             "price": "Цена (руб.)",
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name == "category":
+                field.widget.attrs["class"] = "form-control"
+            else:
+                field.widget.attrs["class"] = "form-control"
+
     def clean_name(self):
         name = self.cleaned_data.get("name")
         if name:
             self._validate_forbidden_words(name)
             if len(name) < 3:
                 raise forms.ValidationError("Название должно содержать минимум 3 символа")
-            return name
+        return name
 
     def clean_description(self):
         description = self.cleaned_data.get("description")
@@ -61,7 +65,8 @@ class ProductForm(forms.ModelForm):
             raise ValidationError("Цена должна быть больше 0")
         return price
 
-    def _validate_forbidden_words(self, text):
+    @staticmethod
+    def _validate_forbidden_words(text):
         """Проверяет наличие запрещенных слов в тексте (целые слова без учёта регистра)"""
         text_lower = text.lower()
         for word in FORBIDDEN_WORDS:
