@@ -1,8 +1,8 @@
 from django.contrib import messages
 from django.shortcuts import render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views import View
-from django.views.generic import CreateView, DetailView, ListView, TemplateView
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
 from .forms import ProductForm
 from .models import Category, Contact, Product
@@ -95,7 +95,7 @@ class CatalogListView(ListView):
     ordering = ["-created_at"]
 
 
-class ProductCreateVeiw(CreateView):
+class ProductCreateView(CreateView):
     """Класс контроллера для добавления нового товара"""
 
     model = Product
@@ -114,3 +114,28 @@ class ProductCreateVeiw(CreateView):
 
     def get_success_url(self):
         return reverse_lazy("catalog:product_detail", kwargs={"pk": self.object.pk})
+
+
+class ProductUpdateView(UpdateView):
+    """Редактирование товара"""
+
+    model = Product
+    form_class = ProductForm
+    template_name = "add_product.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = f"Редактирование товара: {self.object.name}"
+        return context
+
+    def get_success_url(self):
+        return reverse("catalog:product_detail", kwargs={"pk": self.object.pk})
+
+
+class ProductDeleteView(DeleteView):
+    """Удаление товара"""
+
+    model = Product
+    template_name = "product_confirm_delete.html"
+    success_url = reverse_lazy("catalog:catalog")
+    context_object_name = "product"

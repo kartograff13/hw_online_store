@@ -1,11 +1,24 @@
+import re
+
 from django import forms
+from django.core.exceptions import ValidationError
 
 from .models import Product
 
+FORBIDDEN_WORDS = [
+    "казино",
+    "криптовалюта",
+    "крипта",
+    "биржа",
+    "дешево",
+    "бесплатно",
+    "обман",
+    "полиция",
+    "радар",
+]
+
 
 class ProductForm(forms.ModelForm):
-    """Форма для добавления и редактирования товаров"""
-
     class Meta:
         model = Product
         fields = ["name", "description", "image", "category", "price"]
@@ -28,16 +41,29 @@ class ProductForm(forms.ModelForm):
             "price": "Цена (руб.)",
         }
 
+    def clean_name(self):
+        name = self.cleaned_data.get("name")
+        if name:
+            self._validate_forbidden_words(name)
+            if len(name) < 3:
+                raise forms.ValidationError("Название должно содержать минимум 3 символа")
+            return name
+
+    def clean_description(self):
+        description = self.cleaned_data.get("description")
+        if description:
+            self._validate_forbidden_words(description)
+        return description
+
     def clean_price(self):
-        """Валидация цены"""
         price = self.cleaned_data.get("price")
-        if price <= 0:
-            raise forms.ValidationError("Цена должна быть больше 0")
+        if price and price <= 0:
+            raise ValidationError("Цена должна быть больше 0")
         return price
 
-    def clean_name(self):
-        """Валидация названия"""
-        name = self.cleaned_data.get("name")
-        if len(name) < 3:
-            raise forms.ValidationError("Название должно содержать минимум 3 символа")
-        return name
+    def _validate_forbidden_words(self, text):
+        """Проверяет наличие запрещенных слов в тексте (целые слова без учёта регистра)"""
+        text_lower = text.lower()
+        for word in FORBIDDEN_WORDS:
+            if re.search(r"\b" + re.escape(word) + r"\b", text_lower):
+                raise ValidationError(f"Поле содержит запрещенное слово: {word}.")
