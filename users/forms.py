@@ -49,3 +49,21 @@ class UserLoginForm(AuthenticationForm):
                 raise self.get_invalid_login_error()
             self.confirm_login_allowed(self.user_cache)
         return self.cleaned_data
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "avatar", "phone")
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Имя"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Фамилия"}),
+            "avatar": forms.FileInput(attrs={"class": "form-control"}),
+            "phone": forms.TextInput(attrs={"class": "form-control", "placeholder": "Номер телефона"}),
+        }
+        labels = {
+            "first_name": "Имя",
+            "last_name": "Фамилия",
+            "avatar": "Аватар",
+            "phone": "Телефон",
+        }

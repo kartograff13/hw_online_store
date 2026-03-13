@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
@@ -7,10 +8,10 @@ from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views import View
-from django.views.generic import CreateView
+from django.views.generic import CreateView, UpdateView
 
 from config import settings
-from users.forms import UserLoginForm, UserRegisterForm
+from users.forms import ProfileForm, UserLoginForm, UserRegisterForm
 from users.models import User
 
 
@@ -75,3 +76,20 @@ class CustomLoginView(LoginView):
     template_name = "users/login.html"
     authentication_form = UserLoginForm
     next_page = reverse_lazy("catalog:home")
+
+
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    """Редактирования профиля текущего пользователя"""
+
+    model = User
+    form_class = ProfileForm
+    template_name = "users/profile.html"
+    success_url = reverse_lazy("users:profile")
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, "Профиль успешно обновлен.")
+        return response
