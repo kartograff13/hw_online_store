@@ -16,11 +16,14 @@ from users.models import User
 
 
 class RegisterView(CreateView):
+    """Регистрация нового пользователя с отправкой письма для активации аккаунта"""
+
     model = User
     form_class = UserRegisterForm
     template_name = "users/register.html"
 
     def form_valid(self, form):
+        """Создаёт нового пользователя, генерирует активации и отправляет письмо"""
         user = form.save(commit=False)
         user.is_active = False
         user.save()
@@ -55,7 +58,10 @@ class RegisterView(CreateView):
 
 
 class ActivateView(View):
+    """Активация пользователя по ссылке из письма"""
+
     def get(self, request, uidb64, token):
+        """Проверяет токен и и активирует пользователя"""
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
@@ -73,6 +79,8 @@ class ActivateView(View):
 
 
 class CustomLoginView(LoginView):
+    """Авторизация пользователя по email и паролю"""
+
     template_name = "users/login.html"
     authentication_form = UserLoginForm
     next_page = reverse_lazy("catalog:home")
@@ -87,9 +95,11 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy("users:profile")
 
     def get_object(self, queryset=None):
+        """Возвращает текущего пользователя"""
         return self.request.user
 
     def form_valid(self, form):
+        """Сохраняет изменения и показывает сообщение об успешном обновлении информации"""
         response = super().form_valid(form)
         messages.success(self.request, "Профиль успешно обновлен.")
         return response

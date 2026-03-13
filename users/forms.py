@@ -6,6 +6,8 @@ from users.models import User
 
 
 class UserRegisterForm(UserCreationForm):
+    """Форма регистрации нового пользователя (только email и пароль)"""
+
     email = forms.EmailField(
         label="Email", widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Введите Email"})
     )
@@ -22,6 +24,7 @@ class UserRegisterForm(UserCreationForm):
         fields = ("email",)
 
     def save(self, commit=True):
+        """Сохраняет пользователя, устанавливая email в качестве username"""
         user = super().save(commit=False)
         user.email = self.cleaned_data.get("email")
         user.username = self.cleaned_data.get("email")
@@ -33,6 +36,8 @@ class UserRegisterForm(UserCreationForm):
 
 
 class UserLoginForm(AuthenticationForm):
+    """Форма входа пользователя (email вместо username)"""
+
     username = forms.EmailField(
         label="Email", widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Введите Email"})
     )
@@ -41,6 +46,7 @@ class UserLoginForm(AuthenticationForm):
     )
 
     def clean(self):
+        """Аутентификация пользователя по emile и паролю"""
         username = self.cleaned_data.get("username")
         password = self.cleaned_data.get("password")
         if username and password:
@@ -52,6 +58,8 @@ class UserLoginForm(AuthenticationForm):
 
 
 class ProfileForm(forms.ModelForm):
+    """Форма редактирования профиля пользователя (имя, фамилия, аватар, телефон)"""
+
     class Meta:
         model = User
         fields = ("first_name", "last_name", "avatar", "phone")
