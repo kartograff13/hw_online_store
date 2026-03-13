@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.views import View
@@ -77,8 +78,8 @@ class ContactView(View):
         return render(request, self.template_name, {"contact": contact_info})
 
 
-class ProductDetailView(DetailView):
-    """Класс контроллера страницы с подробной информацией о товаре"""
+class ProductDetailView(LoginRequiredMixin, DetailView):
+    """Класс контроллера страницы с подробной информацией о товаре (только для авторизованных пользователей)"""
 
     model = Product
     template_name = "product_detail.html"
@@ -95,8 +96,8 @@ class CatalogListView(ListView):
     ordering = ["-created_at"]
 
 
-class ProductCreateView(CreateView):
-    """Класс контроллера для добавления нового товара"""
+class ProductCreateView(LoginRequiredMixin, CreateView):
+    """Класс контроллера для добавления нового товара (только для авторизованных пользователей)"""
 
     model = Product
     form_class = ProductForm
@@ -116,8 +117,8 @@ class ProductCreateView(CreateView):
         return reverse_lazy("catalog:product_detail", kwargs={"pk": self.object.pk})
 
 
-class ProductUpdateView(UpdateView):
-    """Редактирование товара"""
+class ProductUpdateView(LoginRequiredMixin, UpdateView):
+    """Редактирование товара (только для авторизованных пользователей)"""
 
     model = Product
     form_class = ProductForm
@@ -132,8 +133,8 @@ class ProductUpdateView(UpdateView):
         return reverse("catalog:product_detail", kwargs={"pk": self.object.pk})
 
 
-class ProductDeleteView(DeleteView):
-    """Удаление товара"""
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
+    """Удаление товара (только для авторизованных пользователей)"""
 
     model = Product
     template_name = "product_confirm_delete.html"
