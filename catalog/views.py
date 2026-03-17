@@ -16,7 +16,7 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        latest_products = Product.objects.order_by("-created_at")[:5]
+        latest_products = Product.objects.filter(is_published=True).order_by("-created_at")[:5]
         context["latest_products"] = latest_products
         context["total_products"] = Product.objects.count()
         context["total_categories"] = Category.objects.count()
@@ -85,6 +85,12 @@ class ProductDetailView(LoginRequiredMixin, DetailView):
     template_name = "product_detail.html"
     context_object_name = "product"
 
+    def get_queryset(self):
+        """Модераторы видят все товары, остальные - только опубликованные"""
+        if self.request.user.has_perm("catalog.can_unpublish_product"):
+            return Product.objects.all()
+        return Product.objects.filter(is_published=True)
+
 
 class CatalogListView(ListView):
     """Класс контроллера страницы каталога товаров с пагинацией"""
@@ -94,6 +100,7 @@ class CatalogListView(ListView):
     context_object_name = "all_products"
     paginate_by = 6
     ordering = ["-created_at"]
+    queryset = Product.objects.filter(is_published=True)
 
 
 class ProductCreateView(LoginRequiredMixin, CreateView):
@@ -153,4 +160,18 @@ class ProductUnpublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
         product.is_published = False
         product.save()
         messages.success(request, f"Продукт '{product.name}' снят с публикации.")
+        return redirect("catalog:product_detail", pk=pk)
+
+
+class ProductTooglePubleshView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """Переключает статус публикации продукта (только для модераторов"""
+
+    permission_required = "catalog.can_unpublish_product"
+
+    def post(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+        product.is_published = not product.is_published
+        product.save()
+        status = "опубликован" if product.is_published else "снят с публикации"
+        messages.success(request, f"Продукт '{product.name}' {status}.")
         return redirect("catalog:product_detail", pk=pk)

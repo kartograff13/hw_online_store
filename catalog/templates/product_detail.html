@@ -71,6 +71,18 @@
                     <p class="card-text">{{ product.description|linebreaks }}</p>
                 </div>
 
+                <!-- Статус публикации -->
+                <div class="mb-3">
+                    <h5>Статус публикации:</h5>
+                    <p class="card-text">
+                        {% if product.is_published %}
+                        <span class="badge bg-success">Опубликовано</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Не опубликовано</span>
+                        {% endif %}
+                    </p>
+                </div>
+
                 <!-- Технические детали -->
                 <div class="mb-3">
                     <h5>Технические детали:</h5>
@@ -95,12 +107,25 @@
                 <!-- Кнопки действий -->
                 <div class="d-grid gap-2 d-md-flex justify-content-md-start">
                     {% if user.is_authenticated %}
-                    <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-primary btn-lg px-4 me-md-2">
-                        <i class="bi bi-pencil"></i> Редактировать
-                    </a>
+                    {% if perms.catalog.can_unpublish_product %}
+                    <form action="{% url 'catalog:product_toggle_publish' product.pk %}" method="post"
+                          style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning btn-lg px-4 me-md-2">
+                            <i class="bi {% if product.is_published %}bi-eye-slash{% else %}bi-eye{% endif %}"></i>
+                            {% if product.is_published %}
+                            Снять с публикации
+                            {% else %}
+                            Опубликовать
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if perms.catalog.delete_product %}
                     <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger btn-lg px-4">
                         <i class="bi bi-trash"></i> Удалить
                     </a>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>
