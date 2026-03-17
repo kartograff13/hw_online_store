@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import View
@@ -7,6 +7,15 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, T
 
 from .forms import ProductForm
 from .models import Category, Contact, Product
+
+
+class OwnerOrModeratorMixin(UserPassesTestMixin):
+    """Проверяет, что пользователь является владельцем, суперпользователем или модератором"""
+
+    def test_func(self):
+        product = self.get_object()
+        user = self.request.user
+        return user.is_superuser or user.has_perm("catalog.can_unpublish_product") or product.owner == user
 
 
 class HomeView(TemplateView):
@@ -116,15 +125,17 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, f"'{self.object.name}' успешно добавлен.")
-        return response
+        product = form.save(commit=False)
+        product.owner = self.request.user
+        product.save()
+        messages.success(self.request, f"'{product.name}' успешно добавлен.")
+        return redirect("catalog:product_detail", pk=product.pk)
 
     def get_success_url(self):
         return reverse_lazy("catalog:product_detail", kwargs={"pk": self.object.pk})
 
 
-class ProductUpdateView(LoginRequiredMixin, UpdateView):
+class ProductUpdateView(LoginRequiredMixin, OwnerOrModeratorMixin, UpdateView):
     """Редактирование товара (только для авторизованных пользователей)"""
 
     model = Product
@@ -140,30 +151,16 @@ class ProductUpdateView(LoginRequiredMixin, UpdateView):
         return reverse("catalog:product_detail", kwargs={"pk": self.object.pk})
 
 
-class ProductDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class ProductDeleteView(LoginRequiredMixin, OwnerOrModeratorMixin, DeleteView):
     """Удаление товара (только для авторизованных пользователей)"""
 
-    permission_required = "catalog_delete_product"
     model = Product
     template_name = "product_confirm_delete.html"
     success_url = reverse_lazy("catalog:catalog")
     context_object_name = "product"
 
 
-class ProductUnpublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
-    """Снимает продукт с публикации (только для модераторов"""
-
-    permission_required = "catalog.can_unpublish_product"
-
-    def post(self, request, pk):
-        product = get_object_or_404(Product, pk=pk)
-        product.is_published = False
-        product.save()
-        messages.success(request, f"Продукт '{product.name}' снят с публикации.")
-        return redirect("catalog:product_detail", pk=pk)
-
-
-class ProductTooglePubleshView(LoginRequiredMixin, PermissionRequiredMixin, View):
+class ProductTogglePublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
     """Переключает статус публикации продукта (только для модераторов"""
 
     permission_required = "catalog.can_unpublish_product"

@@ -106,7 +106,6 @@
 
                 <!-- Кнопки действий -->
                 <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                    {% if user.is_authenticated %}
                     {% if perms.catalog.can_unpublish_product %}
                     <form action="{% url 'catalog:product_toggle_publish' product.pk %}" method="post"
                           style="display: inline;">
@@ -121,7 +120,12 @@
                         </button>
                     </form>
                     {% endif %}
-                    {% if perms.catalog.delete_product %}
+
+                    {% if user.is_authenticated %}
+                    {% if user.is_superuser or perms.catalog.can_unpublish_product or product.owner == user %}
+                    <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
                     <a href="{% url 'catalog:product_delete' product.pk %}" class="btn btn-danger btn-lg px-4">
                         <i class="bi bi-trash"></i> Удалить
                     </a>

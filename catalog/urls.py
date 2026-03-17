@@ -8,8 +8,7 @@ from catalog.views import (
     ProductCreateView,
     ProductDeleteView,
     ProductDetailView,
-    ProductTooglePubleshView,
-    ProductUnpublishView,
+    ProductTogglePublishView,
     ProductUpdateView,
 )
 
@@ -23,5 +22,5 @@ urlpatterns = [
     path("add_product/", ProductCreateView.as_view(), name="add_product"),
     path("products/update/<int:pk>", ProductUpdateView.as_view(), name="product_update"),
     path("products/delete/<int:pk>", ProductDeleteView.as_view(), name="product_delete"),
-    path("products/<int:pk>/toogle_publish/", ProductTooglePubleshView.as_view(), name="product_toggle_publish"),
+    path("products/<int:pk>/toggle_publish/", ProductTogglePublishView.as_view(), name="product_toggle_publish"),
 ]
