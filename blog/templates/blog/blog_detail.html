@@ -35,8 +35,12 @@
                 <div class="d-flex justify-content-between">
                     <a href="{% url 'blog:blog_list' %}" class="btn btn-outline-secondary">← Назад к списку</a>
                     <div>
+                        {% if perms.blog.change_blogpost %}
                         <a href="{% url 'blog:blog_update' post.pk %}" class="btn btn-outline-primary">Редактировать</a>
+                        {% endif %}
+                        {% if perms.blog.delete_blogpost %}
                         <a href="{% url 'blog:blog_delete' post.pk %}" class="btn btn-outline-danger">Удалить</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

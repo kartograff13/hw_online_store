@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.mail import send_mail
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
@@ -45,14 +46,16 @@ class BlogDetailView(DetailView):
             print(f"Ошибка отправки email: {e}")
 
 
-class BlogCreateView(CreateView):
+class BlogCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    permission_required = "blog.add_blogpost"
     model = BlogPost
     fields = ["title", "content", "preview", "is_published"]
     template_name = "blog/blog_form.html"
     success_url = reverse_lazy("blog:blog_list")
 
 
-class BlogUpdateView(UpdateView):
+class BlogUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    permission_required = "blog.change_blogpost"
     model = BlogPost
     fields = ("title", "content", "preview", "is_published")
     template_name = "blog/blog_form.html"
@@ -61,7 +64,8 @@ class BlogUpdateView(UpdateView):
         return reverse_lazy("blog:blog_detail", kwargs={"pk": self.object.pk})
 
 
-class BlogDeleteView(DeleteView):
+class BlogDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    permission_required = "blog.delete_blogpost"
     model = BlogPost
     template_name = "blog/blog_confirm_delete.html"
     success_url = reverse_lazy("blog:blog_list")
