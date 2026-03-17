@@ -1,6 +1,6 @@
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
@@ -140,3 +140,16 @@ class ProductDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "product_confirm_delete.html"
     success_url = reverse_lazy("catalog:catalog")
     context_object_name = "product"
+
+
+class ProductUnpublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """Снимает продукт с публикации (только для модераторов"""
+
+    permission_required = "catalog.can_unpublish_product"
+
+    def post(self, request, pk):
+        product = get_object_or_404(Product, pk=pk)
+        product.is_published = False
+        product.save()
+        messages.success(request, f"Продукт '{product.name}' снят с публикации.")
+        return redirect("catalog:product_detail", pk=pk)
