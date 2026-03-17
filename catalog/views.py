@@ -133,9 +133,10 @@ class ProductUpdateView(LoginRequiredMixin, UpdateView):
         return reverse("catalog:product_detail", kwargs={"pk": self.object.pk})
 
 
-class ProductDeleteView(LoginRequiredMixin, DeleteView):
+class ProductDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     """Удаление товара (только для авторизованных пользователей)"""
 
+    permission_required = "catalog_delete_product"
     model = Product
     template_name = "product_confirm_delete.html"
     success_url = reverse_lazy("catalog:catalog")
