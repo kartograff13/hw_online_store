@@ -29,7 +29,13 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        latest_products = Product.objects.filter(is_published=True).order_by("-created_at")[:5]
+        user = self.request.user
+        is_moderator = user.is_superuser or user.has_perm("catalog.can_unpublish_product")
+        if is_moderator:
+            latest_products = Product.objects.order_by("-created_at")[:5]
+        else:
+            latest_products = Product.objects.filter(is_published=True).order_by("-created_at")[:5]
+
         context["latest_products"] = latest_products
         context["total_products"] = Product.objects.count()
         context["total_categories"] = Category.objects.count()
@@ -116,6 +122,12 @@ class CatalogListView(ListView):
     ordering = ["-created_at"]
 
     def get_queryset(self):
+        user = self.request.user
+        is_moderator = user.is_superuser or user.has_perm("catalog.can_unpublish_product")
+
+        if is_moderator:
+            return Product.objects.all().order_by("-created_at")
+
         queryset = cache.get("catalog_products")
         if not queryset:
             queryset = Product.objects.filter(is_published=True).order_by("-created_at")
@@ -188,7 +200,7 @@ class ProductDeleteView(LoginRequiredMixin, OwnerOrModeratorMixin, DeleteView):
 
 
 class ProductTogglePublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
-    """Переключает статус публикации продукта (только для модераторов"""
+    """Переключает статус публикации продукта (только для модераторов)"""
 
     permission_required = "catalog.can_unpublish_product"
 
@@ -211,6 +223,9 @@ class CategoryProductsView(ListView):
 
     def get_queryset(self):
         category_id = self.kwargs.get("pk")
+        user = self.request.user
+        if user.is_superuser or user.has_perm("catalog.can_unpublish_product"):
+            return Product.objects.filter(category_id=category_id).order_by("-created_at")
         return get_products_by_category(category_id)
 
     def get_context_data(self, **kwargs):
