@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -113,7 +114,13 @@ class CatalogListView(ListView):
     context_object_name = "all_products"
     paginate_by = 6
     ordering = ["-created_at"]
-    queryset = Product.objects.filter(is_published=True)
+
+    def get_queryset(self):
+        queryset = cache.get("catalog_products")
+        if not queryset:
+            queryset = Product.objects.filter(is_published=True).order_by("-created_at")
+            cache.set("catalog_products", queryset, timeout=300)
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -137,6 +144,7 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         product = form.save(commit=False)
         product.owner = self.request.user
         product.save()
+        cache.delete("catalog_products")
         messages.success(self.request, f"'{product.name}' успешно добавлен.")
         return redirect("catalog:product_detail", pk=product.pk)
 
@@ -156,6 +164,12 @@ class ProductUpdateView(LoginRequiredMixin, OwnerOrModeratorMixin, UpdateView):
         context["title"] = f"Редактирование товара: {self.object.name}"
         return context
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        cache.delete("catalog_products")
+        messages.success(self.request, f"Товар '{self.object.name}' обновлён.")
+        return response
+
     def get_success_url(self):
         return reverse("catalog:product_detail", kwargs={"pk": self.object.pk})
 
@@ -168,6 +182,10 @@ class ProductDeleteView(LoginRequiredMixin, OwnerOrModeratorMixin, DeleteView):
     success_url = reverse_lazy("catalog:catalog")
     context_object_name = "product"
 
+    def delete(self, request, *args, **kwargs):
+        cache.delete("catalog_products")
+        return super().delete(request, *args, **kwargs)
+
 
 class ProductTogglePublishView(LoginRequiredMixin, PermissionRequiredMixin, View):
     """Переключает статус публикации продукта (только для модераторов"""
@@ -178,6 +196,7 @@ class ProductTogglePublishView(LoginRequiredMixin, PermissionRequiredMixin, View
         product = get_object_or_404(Product, pk=pk)
         product.is_published = not product.is_published
         product.save()
+        cache.delete("catalog_products")
         status = "опубликован" if product.is_published else "снят с публикации"
         messages.success(request, f"Продукт '{product.name}' {status}.")
         return redirect("catalog:product_detail", pk=pk)
