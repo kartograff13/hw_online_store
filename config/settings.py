@@ -144,7 +144,7 @@ AUTH_USER_MODEL = "users.User"
 
 LOGIN_URL = "users:login"
 
-CAСHES = {
+CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": "redis://localhost:6379/1",
