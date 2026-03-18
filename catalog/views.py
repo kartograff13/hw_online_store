@@ -9,6 +9,7 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, T
 
 from .forms import ProductForm
 from .models import Category, Contact, Product
+from .services import get_products_by_category
 
 
 class OwnerOrModeratorMixin(UserPassesTestMixin):
@@ -114,6 +115,11 @@ class CatalogListView(ListView):
     ordering = ["-created_at"]
     queryset = Product.objects.filter(is_published=True)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["categories"] = Category.objects.all()
+        return context
+
 
 class ProductCreateView(LoginRequiredMixin, CreateView):
     """Класс контроллера для добавления нового товара (только для авторизованных пользователей)"""
@@ -175,3 +181,22 @@ class ProductTogglePublishView(LoginRequiredMixin, PermissionRequiredMixin, View
         status = "опубликован" if product.is_published else "снят с публикации"
         messages.success(request, f"Продукт '{product.name}' {status}.")
         return redirect("catalog:product_detail", pk=pk)
+
+
+class CategoryProductsView(ListView):
+    """Список продуктов в выбранной категории"""
+
+    template_name = "category_products.html"
+    context_object_name = "products"
+    paginate_by = 6
+
+    def get_queryset(self):
+        category_id = self.kwargs.get("pk")
+        return get_products_by_category(category_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category_id = self.kwargs.get("pk")
+        category = Category.objects.get(pk=category_id)
+        context["category"] = category
+        return context
