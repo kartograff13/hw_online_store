@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Каталог товаров - Skystore{% endblock %}
+
+{% block header %}
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">Каталог товаров</h1>
+</div>
+{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mt-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:home' %}">Главная</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Каталог</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Каталог товаров -->
+{% if all_products %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h3 class="page-title">🛍️ Доступные товары:</h3>
+        <p class="text-muted">Всего товаров: {{ paginator.count }}</p>
+    </div>
+</div>
+
+<!-- Блок сортировки и фильтрации (можно добавить позже) -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0"><i class="bi bi-filter"></i> Сортировка и фильтрация</h6>
+                        <small class="text-muted">Функционал будет добавлен в следующих версиях</small>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-secondary btn-sm disabled">По цене ↑</button>
+                        <button class="btn btn-outline-secondary btn-sm disabled">По дате ↓</button>
+                        <button class="btn btn-outline-secondary btn-sm disabled">По названию</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Блок категорий -->
+<div class="row mt-4 mb-4">
+    <div class="col-md-12">
+        <h4><i class="bi bi-tags"></i> Категории:</h4>
+        <ul class="list-inline mt-4">
+            {% for category in categories %}
+            <li class="list-inline-item">
+                <a href="{% url 'catalog:category_products' pk=category.pk %}" class="btn btn-outline-secondary btn-sm">
+                    {{ category.name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+    {% for product in all_products %}
+    <div class="col">
+        <div class="card shadow-sm h-100">
+            <!-- Изображение товара -->
+            {% if product.image %}
+            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"
+                 style="height: 225px; object-fit: cover;">
+            {% else %}
+            <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg"
+                 role="img" aria-label="Placeholder: Нет изображения" preserveAspectRatio="xMidYMid slice"
+                 focusable="false">
+                <title>Нет изображения</title>
+                <rect width="100%" height="100%" fill="#55595c"/>
+                <text x="50%" y="50%" fill="#eceeef" dy=".3em">Нет изображения</text>
+            </svg>
+            {% endif %}
+
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name|truncatechars:25 }}</h5>
+                <p class="card-text">
+                    <strong>Цена:</strong> {{ product.price }} руб.<br>
+                    <strong>Категория:</strong> {{ product.category.name|default:"Не указана" }}<br>
+                    <span class="text-muted">{{ product.description|truncatechars:100 }}</span>
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                        <a href="{% url 'catalog:product_detail' pk=product.id %}"
+                           class="btn btn-sm btn-outline-secondary">Подробнее</a>
+                    </div>
+                    <small class="text-muted">{{ product.created_at|date:"d.m.Y" }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Пагинация -->
+{% if page_obj.paginator.num_pages > 1 %}
+<nav aria-label="Навигация по страницам" class="mt-5">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1" aria-label="Первая">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Предыдущая">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&laquo;&laquo;</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">&laquo;</span>
+        </li>
+        {% endif %}
+
+        <!-- Показываем номера страниц с окрестностями -->
+        {% for num in page_obj.paginator.page_range %}
+        {% if num == page_obj.number %}
+        <li class="page-item active" aria-current="page">
+            <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+        <li class="page-item disabled">
+            <span class="page-link">...</span>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Следующая">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Последняя">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">&raquo;</span>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">&raquo;&raquo;</span>
+        </li>
+        {% endif %}
+    </ul>
+
+    <!-- Информация о странице -->
+    <div class="text-center mt-2">
+        <small class="text-muted">
+            Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+            | Показано {{ all_products|length }} товаров на странице
+        </small>
+    </div>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h4 class="alert-heading">Товаров пока нет!</h4>
+            <p>Заполните базу данных командой:</p>
+            <code>python manage.py load_initial_data</code>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

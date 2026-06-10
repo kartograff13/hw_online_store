@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Skystore{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mt-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:catalog' %}">Каталог</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Отображение ошибок формы -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Поле: Название товара -->
+                    <div class="mb-3">
+                        <label for="{{ form.name.auto_id }}" class="form-label">
+                            {{ form.name.label }}
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.name.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Минимум 3 символа</div>
+                    </div>
+
+                    <!-- Поле: Описание -->
+                    <div class="mb-3">
+                        <label for="{{ form.description.auto_id }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.description.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Поле: Категория -->
+                    <div class="mb-3">
+                        <label for="{{ form.category.auto_id }}" class="form-label">
+                            {{ form.category.label }}
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.category.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">
+                            {% if user.is_authenticated %}
+                            <a href="{% url 'admin:catalog_category_add' %}" target="_blank"
+                               class="text-decoration-none">
+                                Добавить новую категорию
+                            </a>
+                            {% else %}
+                            Для добавления категории обратитесь к администратору
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Поле: Цена -->
+                    <div class="mb-3">
+                        <label for="{{ form.price.auto_id }}" class="form-label">
+                            {{ form.price.label }}
+                        </label>
+                        <div class="input-group">
+                            {{ form.price }}
+                            <span class="input-group-text">₽</span>
+                        </div>
+                        {% if form.price.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.price.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Введите положительную цену</div>
+                    </div>
+
+                    <!-- Поле: Изображение -->
+                    <div class="mb-4">
+                        <label for="{{ form.image.auto_id }}" class="form-label">
+                            {{ form.image.label }}
+                        </label>
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.image.errors %}
+                            <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Рекомендуемый размер: 800x600px. Форматы: JPG, PNG, JPEG</div>
+                    </div>
+
+                    <!-- Кнопки отправки формы -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'catalog:catalog' %}" class="btn btn-outline-secondary me-md-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-arrow-left" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd"
+                                      d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+                            </svg>
+                            Отмена
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-plus-circle" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                            </svg>
+                            {% if object %}Сохранить{% else %}Добавить товар{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Подсказка по формату данных -->
+            <div class="card-footer bg-light">
+                <h6 class="mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-info-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                    </svg>
+                    Подсказки:
+                </h6>
+                <ul class="mb-0">
+                    <li>Все поля, кроме изображения, обязательны для заполнения</li>
+                    <li>После добавления товара вы будете перенаправлены на страницу товара</li>
+                    <li>Для редактирования товара используйте админ-панель Django</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Примеры заполнения формы -->
+        <div class="card mt-4 shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                         class="bi bi-lightbulb" viewBox="0 0 16 16">
+                        <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1"/>
+                    </svg>
+                    Примеры заполнения:
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Электроника:</h6>
+                        <ul class="small">
+                            <li><strong>Название:</strong> Смартфон Xiaomi Redmi Note 12</li>
+                            <li><strong>Описание:</strong> Смартфон с AMOLED дисплеем 6.67", 128 ГБ памяти</li>
+                            <li><strong>Категория:</strong> Электроника</li>
+                            <li><strong>Цена:</strong> 24999.99</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Одежда:</h6>
+                        <ul class="small">
+                            <li><strong>Название:</strong> Футболка мужская хлопковая</li>
+                            <li><strong>Описание:</strong> Хлопковая футболка с принтом, размеры S-XXL</li>
+                            <li><strong>Категория:</strong> Одежда</li>
+                            <li><strong>Цена:</strong> 1999.00</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

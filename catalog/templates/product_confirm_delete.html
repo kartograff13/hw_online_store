@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Удаление товара - Skystore{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb" class="mt-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'catalog:home' %}">Главная</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:catalog' %}">Каталог</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'catalog:product_detail' product.pk %}">{{ product.name|truncatechars:30 }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Удаление</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="card-title mb-0">Подтверждение удаления</h4>
+            </div>
+            <div class="card-body">
+                <p class="lead">Вы уверены, что хотите удалить товар <strong>"{{ product.name }}"</strong>?</p>
+                <p class="text-muted">Это действие нельзя будет отменить.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'catalog:product_detail' product.pk %}"
+                           class="btn btn-outline-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-danger">Удалить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
